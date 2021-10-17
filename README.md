@@ -36,9 +36,9 @@ vim cluster.conf
 
 ### 启动脚本(bin/)
 
-![image-20211013154643458](E:\material\md\image-20211013154643458.png)
+![脚本](https://cdn.jsdelivr.net/gh/Raptor1998/imghouse/untidy/20211017175846.png)
 
-![image-20211013154656262](E:\material\md\image-20211013154656262.png)
+![脚本](https://cdn.jsdelivr.net/gh/Raptor1998/imghouse/untidy/20211017175847.png)
 
 ### 启动方式
 
