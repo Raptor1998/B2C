@@ -1,10 +1,14 @@
 package com.raptor.gulimall.product;
 
-import com.raptor.gulimall.product.entity.BrandEntity;
 import com.raptor.gulimall.product.service.BrandService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+
+import java.io.ByteArrayInputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @SpringBootTest
 class GulimallProductApplicationTests {
@@ -14,16 +18,15 @@ class GulimallProductApplicationTests {
 
     @Test
     void contextLoads() {
+        List<String> list = new ArrayList<>();
+        list.add("a");
+        list.add("b");
+        list.add("c");
+        list.add("d");
 
-        //BrandEntity brandEntity = new BrandEntity();
-        //brandEntity.setBrandId(1L);
-        ////brandEntity.setName("华为");
-        ////brandService.save(brandEntity);
-        ////System.out.println("保存成功");
-        //brandEntity.setName("小米");
-        //brandService.updateById(brandEntity);
-        BrandEntity brandEntity = brandService.getById(1L);
-        System.out.println(brandEntity);
+        List<String> temp = list.stream().filter(c -> c.equals("a")).collect(Collectors.toList());
+        System.out.println(temp);
     }
+
 
 }

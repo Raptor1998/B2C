@@ -1,0 +1,11 @@
+spring:
+  datasource:
+    username: root
+    password: Cwh032308....
+    url: jdbc:mysql://sh-cynosdbmysql-grp-rjz587zw.sql.tencentcdb.com:27204/gulimall_pms?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+
+
+server:
+  port: 30000

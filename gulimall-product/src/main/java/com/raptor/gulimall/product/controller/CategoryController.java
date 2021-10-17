@@ -1,6 +1,7 @@
 package com.raptor.gulimall.product.controller;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,14 +16,15 @@ import com.raptor.gulimall.product.service.CategoryService;
 import com.raptor.common.utils.PageUtils;
 import com.raptor.common.utils.R;
 
+import javax.validation.Valid;
 
 
 /**
- * 商品三级分类
+ * ??Ʒ???????
  *
  * @author raptor
  * @email knightcwh@163.com
- * @date 2021-10-12 21:23:51
+ * @date 2021-10-14 15:24:23
  */
 @RestController
 @RequestMapping("product/category")
@@ -33,12 +35,12 @@ public class CategoryController {
     /**
      * 列表
      */
-    @RequestMapping("/list")
+    @RequestMapping("/list/tree")
     //@RequiresPermissions("product:category:list")
     public R list(@RequestParam Map<String, Object> params){
-        PageUtils page = categoryService.queryPage(params);
+        List<CategoryEntity> entities = categoryService.listWithTree();
 
-        return R.ok().put("page", page);
+        return R.ok().put("data", entities);
     }
 
 
@@ -70,6 +72,7 @@ public class CategoryController {
     @RequestMapping("/update")
     //@RequiresPermissions("product:category:update")
     public R update(@RequestBody CategoryEntity category){
+        System.out.println(category);
 		categoryService.updateById(category);
 
         return R.ok();
@@ -81,8 +84,8 @@ public class CategoryController {
     @RequestMapping("/delete")
     //@RequiresPermissions("product:category:delete")
     public R delete(@RequestBody Long[] catIds){
-		categoryService.removeByIds(Arrays.asList(catIds));
-
+		//categoryService.removeByIds(Arrays.asList(catIds));
+        categoryService.removeMenuByIds(Arrays.asList(catIds));
         return R.ok();
     }
 

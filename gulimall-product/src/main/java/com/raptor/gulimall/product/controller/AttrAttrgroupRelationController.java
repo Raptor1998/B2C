@@ -22,7 +22,7 @@ import com.raptor.common.utils.R;
  *
  * @author raptor
  * @email knightcwh@163.com
- * @date 2021-10-12 21:23:51
+ * @date 2021-10-15 20:08:56
  */
 @RestController
 @RequestMapping("product/attrattrgrouprelation")

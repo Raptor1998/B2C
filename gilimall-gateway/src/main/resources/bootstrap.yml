@@ -1,0 +1,14 @@
+spring:
+  application:
+    name: gulimall-gateway
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848 #服务注册中心地址
+      config:
+        server-addr: localhost:8848 #配置中心地址
+        namespace: edb65d55-1da4-4818-8ae0-82205ecca99e
+        ext-config:
+          - data-id: gulimall-gateway.yaml
+            group: dev
+            refresh: true

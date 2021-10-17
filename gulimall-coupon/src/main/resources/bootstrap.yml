@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: gulimall-coupon
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848 #服务注册中心地址
+      config:
+        server-addr: localhost:8848 #配置中心地址
+
+        namespace: f25441ec-951d-4207-8a70-f69ef738d7e8
+        ext-config:
+          - data-id: datasources.yaml
+            group: dev
+            refresh: true
+          - data-id: gulimall-coupon.yaml
+            group: dev
+            refresh: true
+
+
+
+# ${spring.application.name}-${spring.profile.active}.${spring.cloud.nacos.config.file-extension}

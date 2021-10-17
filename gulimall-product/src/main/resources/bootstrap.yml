@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: gulimall-product
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848 #服务注册中心地址
+      config:
+        server-addr: localhost:8848 #配置中心地址
+
+        namespace: 9a3d8d17-e15e-4e5c-89bc-83c4ff31967d
+        ext-config:
+          - data-id: gulimall-product.yaml
+            group: dev
+            refresh: true
+
+
+
+# ${spring.application.name}-${spring.profile.active}.${spring.cloud.nacos.config.file-extension}

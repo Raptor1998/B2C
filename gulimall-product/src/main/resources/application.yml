@@ -1,14 +1,35 @@
 spring:
+  application:
+    name: gulimall-product
   datasource:
     username: root
     password: Cwh032308....
     url: jdbc:mysql://sh-cynosdbmysql-grp-rjz587zw.sql.tencentcdb.com:27204/gulimall_pms?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
     driver-class-name: com.mysql.cj.jdbc.Driver
-
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+  devtools:
+    livereload:
+      port: 35729
+      enabled: true
+    restart:
+      enabled: true
 
 mybatis-plus:
   mapper-locations: classpath*:/mapper/**/*.xml
   global-config:
     db-config:
       id-type: auto
+      #全局的逻辑删除规则
+      logic-delete-value: 1
+      logic-not-delete-value: 0
 
+server:
+  port: 12000
+
+
+logging:
+  level:
+    com.raptor.gulimall: debug

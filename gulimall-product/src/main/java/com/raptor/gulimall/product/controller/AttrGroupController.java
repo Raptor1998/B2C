@@ -3,6 +3,7 @@ package com.raptor.gulimall.product.controller;
 import java.util.Arrays;
 import java.util.Map;
 
+import com.raptor.gulimall.product.service.CategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -22,7 +23,7 @@ import com.raptor.common.utils.R;
  *
  * @author raptor
  * @email knightcwh@163.com
- * @date 2021-10-12 21:23:51
+ * @date 2021-10-15 20:08:57
  */
 @RestController
 @RequestMapping("product/attrgroup")
@@ -30,14 +31,20 @@ public class AttrGroupController {
     @Autowired
     private AttrGroupService attrGroupService;
 
+
+    @Autowired
+    private CategoryService categoryService;
+
     /**
      * 列表
      */
-    @RequestMapping("/list")
+    @RequestMapping("/list/{catelogId}")
     //@RequiresPermissions("product:attrgroup:list")
-    public R list(@RequestParam Map<String, Object> params){
-        PageUtils page = attrGroupService.queryPage(params);
+    public R list(@RequestParam Map<String, Object> params,@PathVariable Long catelogId){
+        //PageUtils page = attrGroupService.queryPage(params);
 
+
+        PageUtils page =  attrGroupService.queryPage(params,catelogId);
         return R.ok().put("page", page);
     }
 
@@ -50,6 +57,9 @@ public class AttrGroupController {
     public R info(@PathVariable("attrGroupId") Long attrGroupId){
 		AttrGroupEntity attrGroup = attrGroupService.getById(attrGroupId);
 
+		Long catelogPath = attrGroup.getCatelogId();
+        Long[] path = categoryService.findCarelogPath(catelogPath);
+		attrGroup.setCatelogPath(path);
         return R.ok().put("attrGroup", attrGroup);
     }
 
