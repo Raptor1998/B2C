@@ -1,9 +1,11 @@
 package com.raptor.gulimall.product.controller;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 import com.raptor.gulimall.product.service.CategoryService;
+import com.raptor.gulimall.product.vo.AttrGroupWithAttrVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -48,7 +50,11 @@ public class AttrGroupController {
         return R.ok().put("page", page);
     }
 
-
+    @RequestMapping("/{catelogId}/withattr")
+    public R getAttrWithAttrs(@PathVariable Long catelogId) {
+        List<AttrGroupWithAttrVo> vos = attrGroupService.getAttrWithAttrs(catelogId);
+        return R.ok().put("data", vos);
+    }
     /**
      * 信息
      */

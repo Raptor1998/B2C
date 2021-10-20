@@ -3,7 +3,10 @@ package com.raptor.gulimall.product.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.raptor.common.utils.PageUtils;
 import com.raptor.gulimall.product.entity.AttrEntity;
+import com.raptor.gulimall.product.vo.AttrGroupWithAttrVo;
+import com.raptor.gulimall.product.vo.AttrVo;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -16,5 +19,10 @@ import java.util.Map;
 public interface AttrService extends IService<AttrEntity> {
 
     PageUtils queryPage(Map<String, Object> params);
+
+    void save(AttrVo attr);
+
+    PageUtils queryBaseattr(Map<String, Object> params, Long catelogId,String attrType);
+
 }
 

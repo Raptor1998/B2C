@@ -1,4 +1,4 @@
-# Nacos 
+# Nacos
 
 ## Nacos集群启动问题
 
@@ -11,7 +11,7 @@
 ```yml
 ###################最后追加###################
 spring.datasource.platform=mysql
- 
+
 db.num=1
 db.url.0=jdbc:mysql://127.0.0.1:3306/cloud?serverTimezone=UTC&useUnicode=true&characterEncoding=utf-8&useSSL=true&serverTimezone=Asia/Shanghai
 db.user=root
@@ -36,9 +36,9 @@ vim cluster.conf
 
 ### 启动脚本(bin/)
 
-![脚本](https://cdn.jsdelivr.net/gh/Raptor1998/imghouse/untidy/20211017175846.png)
+![](https://cdn.jsdelivr.net/gh/Raptor1998/imghouse/untidy/20211017175846.png)
 
-![脚本](https://cdn.jsdelivr.net/gh/Raptor1998/imghouse/untidy/20211017175847.png)
+![](https://cdn.jsdelivr.net/gh/Raptor1998/imghouse/untidy/20211017175847.png)
 
 ### 启动方式
 
@@ -144,3 +144,56 @@ com.raptor.common.valid.ListValue.message=必须是指定的值
 @Constraint(validatedBy = {ListValueConstrainValidation.class})
 ```
 
+# elasticsearch
+
+## docker安装elasticsearch
+
+```shell
+1. 下载镜像
+docker pull elasticsearch:7.6.2
+2. 创建一个挂载目录
+mkdir -p /mydata/elasticsearch/config
+mkdir -p /mydata/elasticsearch/data
+echo "http.host: 0.0.0.0" >> /mydata/elasticsearch/config/elasticsearch.yml
+3. 启动
+docker run --name elasticsearch -p 9200:9200 -p 9300:9300  -e "discovery.type=single-node" -e ES_JAVA_OPTS="-Xms64m -Xmx128m" -v /mydata/elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml -v /mydata/elasticsearch/data:/usr/share/elasticsearch/data -v /mydata/elasticsearch/plugins:/usr/share/elasticsearch/plugins -d elasticsearch:7.6.2
+
+其中elasticsearch.yml是挂载的配置文件，data是挂载的数据，plugins是es的插件
+
+4. 权限问题
+docker logs elasticsearch 查看日志 发现报无权限错误
+"Caused by: java.nio.file.AccessDeniedException: /usr/share/elasticsearch/data/nodes"
+添加权限
+chmod -R 777 /mydata/elasticsearch/
+
+-e "discovery.type=single-node" 设置为单节点
+-e ES_JAVA_OPTS="-Xms256m -Xmx256m" \ 测试环境下，设置ES的初始内存和最大内存，否则导致过大启动不了ES
+
+
+5. 访问http://your ipadress:9200/   说明启动成功
+{
+  "name" : "26e50cad52d5",
+  "cluster_name" : "elasticsearch",
+  "cluster_uuid" : "RrKY3rRZRW2nh7Ap-rIjvQ",
+  "version" : {
+    "number" : "7.6.2",
+    "build_flavor" : "default",
+    "build_type" : "docker",
+    "build_hash" : "ef48eb35cf30adf4db14086e8aabd07ef6fb113f",
+    "build_date" : "2020-03-26T06:34:37.794943Z",
+    "build_snapshot" : false,
+    "lucene_version" : "8.4.0",
+    "minimum_wire_compatibility_version" : "6.8.0",
+    "minimum_index_compatibility_version" : "6.0.0-beta1"
+  },
+  "tagline" : "You Know, for Search"
+}
+```
+
+## docker安装Kibana
+
+```shell
+docker pull kibana:7.6.2
+
+docker run --name kibana -e ELASTICSEARCH_HOSTS=http://your ipaddress:9200 -p 5601:5601 -d kibana:7.6.2
+```

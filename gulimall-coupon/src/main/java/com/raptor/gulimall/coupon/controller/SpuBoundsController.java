@@ -3,12 +3,9 @@ package com.raptor.gulimall.coupon.controller;
 import java.util.Arrays;
 import java.util.Map;
 
+import com.raptor.common.to.SpuBoundsTo;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.raptor.gulimall.coupon.entity.SpuBoundsEntity;
 import com.raptor.gulimall.coupon.service.SpuBoundsService;
@@ -41,6 +38,17 @@ public class SpuBoundsController {
         return R.ok().put("page", page);
     }
 
+    /**
+     * 可以使用save的本方法，因为@requestbody 无需使接受数据类型相同
+     *
+     * @param spuBoundsTo
+     * @return
+     */
+    @PostMapping("/saveSpuBoundTo")
+    public R saveSpuBounds(@RequestBody SpuBoundsTo spuBoundsTo) {
+        spuBoundsService.saveSpuBounds(spuBoundsTo);
+        return R.ok();
+    }
 
     /**
      * 信息

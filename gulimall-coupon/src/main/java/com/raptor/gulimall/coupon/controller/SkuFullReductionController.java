@@ -3,12 +3,9 @@ package com.raptor.gulimall.coupon.controller;
 import java.util.Arrays;
 import java.util.Map;
 
+import com.raptor.common.to.SkuReductionTo;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.raptor.gulimall.coupon.entity.SkuFullReductionEntity;
 import com.raptor.gulimall.coupon.service.SkuFullReductionService;
@@ -41,6 +38,16 @@ public class SkuFullReductionController {
         return R.ok().put("page", page);
     }
 
+    /**
+     * 供远程调用保存sku的满减信息和会员价格等
+     *
+     * @return
+     */
+    @PostMapping("/saveInfo")
+    public R saveInfo(@RequestBody SkuReductionTo skuReductionTo) {
+        skuFullReductionService.saveSkuReduction(skuReductionTo);
+        return R.ok();
+    }
 
     /**
      * 信息

@@ -1,7 +1,10 @@
 package com.raptor.gulimall.coupon.service.impl;
 
+import com.raptor.common.to.SpuBoundsTo;
 import org.springframework.stereotype.Service;
+
 import java.util.Map;
+
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -26,4 +29,18 @@ public class SpuBoundsServiceImpl extends ServiceImpl<SpuBoundsDao, SpuBoundsEnt
         return new PageUtils(page);
     }
 
+    /**
+     * gulimall-product远程调用保存满减信息
+     *
+     * @param spuBoundsTo
+     */
+    @Override
+    public void saveSpuBounds(SpuBoundsTo spuBoundsTo) {
+        SpuBoundsEntity spuBoundsEntity = new SpuBoundsEntity();
+        spuBoundsEntity.setBuyBounds(spuBoundsTo.getBuyBounds());
+        spuBoundsEntity.setGrowBounds(spuBoundsTo.getGrowBounds());
+        spuBoundsEntity.setWork(1);
+        spuBoundsEntity.setSpuId(spuBoundsTo.getSpuId());
+        baseMapper.insert(spuBoundsEntity);
+    }
 }

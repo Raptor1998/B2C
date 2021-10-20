@@ -3,7 +3,9 @@ package com.raptor.gulimall.product.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.raptor.common.utils.PageUtils;
 import com.raptor.gulimall.product.entity.AttrGroupEntity;
+import com.raptor.gulimall.product.vo.AttrGroupWithAttrVo;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -18,5 +20,7 @@ public interface AttrGroupService extends IService<AttrGroupEntity> {
     PageUtils queryPage(Map<String, Object> params);
 
     PageUtils queryPage(Map<String, Object> params, Long catelogId);
+
+    List<AttrGroupWithAttrVo> getAttrWithAttrs(Long catelogId);
 }
 
