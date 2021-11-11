@@ -3,6 +3,7 @@ package com.raptor.gulimall.product.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.raptor.common.utils.PageUtils;
 import com.raptor.gulimall.product.entity.CategoryEntity;
+import com.raptor.gulimall.product.vo.Catelog2Vo;
 
 import java.util.List;
 import java.util.Map;
@@ -23,5 +24,12 @@ public interface CategoryService extends IService<CategoryEntity> {
     void removeMenuByIds(List<Long> catIds);
 
     Long[] findCarelogPath(Long catelogId);
+
+    List<CategoryEntity> getLevel1Categorys();
+
+    Map<String, List<Catelog2Vo>> getCatalogJson();
+
+    void updateCascade(CategoryEntity category);
+
 }
 

@@ -1,8 +1,10 @@
 package com.raptor.gulimall.product.service;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.raptor.common.utils.PageUtils;
 import com.raptor.gulimall.product.entity.AttrEntity;
+import com.raptor.gulimall.product.entity.ProductAttrValueEntity;
 import com.raptor.gulimall.product.vo.AttrGroupWithAttrVo;
 import com.raptor.gulimall.product.vo.AttrVo;
 
@@ -24,5 +26,9 @@ public interface AttrService extends IService<AttrEntity> {
 
     PageUtils queryBaseattr(Map<String, Object> params, Long catelogId,String attrType);
 
+    List<ProductAttrValueEntity> getSpuSpecification(Long spuId);
+
+
+    List<Long> selectSearchAttrs(List<Long> attrIds);
 }
 

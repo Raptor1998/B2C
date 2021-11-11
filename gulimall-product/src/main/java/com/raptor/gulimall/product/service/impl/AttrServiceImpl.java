@@ -1,12 +1,8 @@
 package com.raptor.gulimall.product.service.impl;
 
 import com.raptor.common.constant.ProductConstant;
-import com.raptor.gulimall.product.dao.AttrAttrgroupRelationDao;
-import com.raptor.gulimall.product.dao.AttrGroupDao;
-import com.raptor.gulimall.product.dao.CategoryDao;
-import com.raptor.gulimall.product.entity.AttrAttrgroupRelationEntity;
-import com.raptor.gulimall.product.entity.AttrGroupEntity;
-import com.raptor.gulimall.product.entity.CategoryEntity;
+import com.raptor.gulimall.product.dao.*;
+import com.raptor.gulimall.product.entity.*;
 import com.raptor.gulimall.product.service.AttrGroupService;
 import com.raptor.gulimall.product.vo.AttrGroupWithAttrVo;
 import com.raptor.gulimall.product.vo.AttrRespVo;
@@ -26,8 +22,6 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.raptor.common.utils.PageUtils;
 import com.raptor.common.utils.Query;
 
-import com.raptor.gulimall.product.dao.AttrDao;
-import com.raptor.gulimall.product.entity.AttrEntity;
 import com.raptor.gulimall.product.service.AttrService;
 
 
@@ -40,6 +34,8 @@ public class AttrServiceImpl extends ServiceImpl<AttrDao, AttrEntity> implements
     AttrGroupDao attrGroupDao;
     @Autowired
     CategoryDao categoryDao;
+    @Autowired
+    ProductAttrValueDao productAttrValueDao;
 
     @Override
     public PageUtils queryPage(Map<String, Object> params) {
@@ -67,6 +63,14 @@ public class AttrServiceImpl extends ServiceImpl<AttrDao, AttrEntity> implements
 
 
     }
+
+    @Override
+    public List<ProductAttrValueEntity> getSpuSpecification(Long spuId) {
+        List<ProductAttrValueEntity> productAttrValueEntities = productAttrValueDao.selectList(new QueryWrapper<ProductAttrValueEntity>()
+                .eq("spu_id", spuId));
+        return productAttrValueEntities;
+    }
+
 
     @Override
     public PageUtils queryBaseattr(Map<String, Object> params, Long catelogId, String attrType) {
@@ -110,5 +114,9 @@ public class AttrServiceImpl extends ServiceImpl<AttrDao, AttrEntity> implements
         return pageUtils;
     }
 
-
+    @Override
+    public List<Long> selectSearchAttrs(List<Long> attrIds) {
+        //在自定的属性集合 检索可查询的属性
+        return baseMapper.selectSearchAttrs(attrIds);
+    }
 }

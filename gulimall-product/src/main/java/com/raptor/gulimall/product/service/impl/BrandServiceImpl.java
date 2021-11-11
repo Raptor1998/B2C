@@ -24,7 +24,6 @@ public class BrandServiceImpl extends ServiceImpl<BrandDao, BrandEntity> impleme
         if (!StringUtils.isEmpty(key)){
             wrapper.eq("brand_id",key).or().like("brand_name",key);
         }
-
         IPage<BrandEntity> page = this.page(
                 new Query<BrandEntity>().getPage(params),
                 wrapper
