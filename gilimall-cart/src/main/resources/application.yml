@@ -1,0 +1,33 @@
+server:
+  port: 21000
+  servlet:
+    session:
+      timeout: 30
+
+spring:
+  datasource:
+    username: root
+    password: Cwh032308....
+    url: jdbc:mysql://sh-cynosdbmysql-grp-rjz587zw.sql.tencentcdb.com:27204/gulimall_pms?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  mvc:
+    static-path-pattern: /static/**
+
+  session:
+    store-type: redis
+
+  redis:
+    host: 127.0.0.1
+    port: 6379
+
+logging:
+  level:
+    com.raptor.gulimall: debug
+
+
+#配置线程池
+gulimall:
+  thread:
+    coreSize: 20
+    maxSize: 200
+    keepAliveTime: 10

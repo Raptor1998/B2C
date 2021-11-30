@@ -1,4 +1,6 @@
 spring:
+  session:
+    store-type: redis
   application:
     name: gulimall-product
   datasource:

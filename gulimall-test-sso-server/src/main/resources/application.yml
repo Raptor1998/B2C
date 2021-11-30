@@ -1,0 +1,12 @@
+server:
+  port: 8080
+
+spring:
+  mvc:
+    static-path-pattern: /static/**
+  redis:
+    host: 127.0.0.1
+    port: 6379
+logging:
+  level:
+    com.raptor.gulimall: debug

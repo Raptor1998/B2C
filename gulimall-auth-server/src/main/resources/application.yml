@@ -1,10 +1,15 @@
 server:
   port: 20000
-
+  servlet:
+    session:
+      timeout: 30
 
 spring:
   mvc:
     static-path-pattern: /static/**
+
+  session:
+    store-type: redis
 
   redis:
     host: 127.0.0.1

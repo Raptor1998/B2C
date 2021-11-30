@@ -10,6 +10,24 @@ spring:
     nacos:
       discovery:
         server-addr: localhost:8848
+  rabbitmq:
+    username: guest
+    password: guest
+    host: 47.97.80.239
+    port: 5672
+    # 开启发送端确认
+    publisher-confirm-type: correlated
+    # 开启发送端消息抵达队列的queen
+    publisher-returns: true
+    # 只要抵达队列，优先回调publisher-returns
+    template:
+      mandatory: true
+    listener:
+      simple:
+        # 手动确认收货
+        acknowledge-mode: manual
+
+
 
 
 mybatis-plus:

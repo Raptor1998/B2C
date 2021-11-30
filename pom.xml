@@ -21,6 +21,9 @@
         <module>gulimall-third-party</module>
         <module>gulimall-search</module>
         <module>gulimall-auth-server</module>
+        <module>gulimall-test-sso-server</module>
+        <module>gulimall-test-sso-client</module>
+        <module>gilimall-cart</module>
     </modules>
     <!-- 统一管理jar包版本 -->
     <properties>
