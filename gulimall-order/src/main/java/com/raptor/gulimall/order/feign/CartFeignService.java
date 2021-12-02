@@ -2,6 +2,7 @@ package com.raptor.gulimall.order.feign;
 
 import com.raptor.gulimall.order.vo.OrderItemVo;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.GetMapping;
 
 import java.util.List;

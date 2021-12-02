@@ -3,6 +3,7 @@ package com.raptor.gulimall.order.feign;
 
 import com.raptor.gulimall.order.vo.MemberAddressVo;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
