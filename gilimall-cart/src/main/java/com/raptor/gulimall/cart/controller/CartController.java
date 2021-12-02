@@ -109,7 +109,7 @@ public class CartController {
 
         cartService.checkItem(skuId,checked);
 
-        return "redirect:http://cart.gulimall.com/cart.html";
+        return "redirect:http://127.0.0.1:21000/cart.html";
 
     }
 

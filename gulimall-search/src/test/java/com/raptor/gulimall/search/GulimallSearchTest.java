@@ -49,4 +49,5 @@ public class GulimallSearchTest {
         private Integer age;
     }
 
+
 }

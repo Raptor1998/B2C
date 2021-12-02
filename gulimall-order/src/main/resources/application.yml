@@ -27,6 +27,9 @@ spring:
         # 手动确认收货
         acknowledge-mode: manual
 
+  redis:
+    host: 127.0.0.1
+    port: 6379
 
 
 

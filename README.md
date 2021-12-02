@@ -199,3 +199,155 @@ docker run --name kibana -e ELASTICSEARCH_HOSTS=http://your ipaddress:9200 -p 56
 ```
 
 # nginx转发到网关时请求的host丢失
+
+# 异步&线程池
+
+```java
+/**
+ * 集成Thread
+ * 实现Runnable接口
+ * 实现Callable接口+futureTask
+ * 线程池
+ */
+//Thread01 thread01 = new Thread01();
+//thread01.start();
+
+//Runnable01 runnable01 = new Runnable01();
+//new Thread(runnable01).start();
+
+
+//FutureTask<Integer> futureTask = new FutureTask<Integer>(new Callable01());
+//new Thread(futureTask).start();
+////阻塞等待
+//Integer integer = futureTask.get();
+//System.out.println(integer);
+
+//应该将所有的异步任务都交给线程池执行
+
+/**
+ * int corePoolSize,  核心线程数，线程池创建号以后就准备就绪的线程数量，就等待接受异步任务去执行
+ * 只要线程池不销毁，就一直存在   除非奢姿了这个allowCoreThreadTimeOut
+ * int maximumPoolSize,  最大的线程数量  控制资源并发
+ * long keepAliveTime,  存活时间，当正在运行线程数量大于核心数量，回释放空闲的线程，
+ * 只要线程空闲大于执行的存活时间，释放的线程等于maximumPoolSize-corePoolSize
+ * TimeUnit unit, 时间单位
+ * BlockingQueue<Runnable> workQueue, 阻塞队列 如果任务很多，将多余的任务放在队列里，有现成空闲就回去队列里取新的任务
+ * ThreadFactory threadFactory,  线程创建工厂，
+ * RejectedExecutionHandler handler   如果队列满了，按照指定的拒绝策略，拒绝执行任务
+ *
+ *
+ *
+ * 工作顺序：
+ * 1. 线程池创建号，准备好core的核心线程数量，准备接受任务
+ * 2. 新的任务进来，用core准备好的空闲线程去执行
+ *  （1）core满了，将再进来的任务放到阻塞队列中，空闲的core就会自己去阻塞队列获取任务
+ *  （2）阻塞队列满了，就直接开新的线程执行，最大只能开到max指定的数量
+ *  （3）max都执行好了，Max-core数量空闲的线程会在keepAliveTime指定的时间后自动销毁，最终保持到core大小
+ *  （4）如果线程开到了max的数量，还有新任务进来，就会使用reject指定的拒绝策略进行处理
+ * 3.所有的线程创建都是由指定的factory创建的
+ *
+ *  一个线程池 core 7，max 20 ，queue 50   100并发进来怎么分配
+ *  先执行7个，后续50个请求进队列，然后创建13个新线程执行，
+ *  现在执行了 7 + 13 个  50个在队列中   剩下30执行拒绝策略
+ *
+ *
+ *  new LinkedBlockingDeque<>()  默认integer的最大值
+ */
+ThreadPoolExecutor executor = new ThreadPoolExecutor(7,
+                20,
+                10,
+                TimeUnit.SECONDS,
+                new LinkedBlockingDeque<>(50),
+                Executors.defaultThreadFactory(),
+                new ThreadPoolExecutor.AbortPolicy());
+
+        for (int i = 0; i < 100; i++) {
+            executor.execute(new Thread(new Runnable() {
+                @Override
+                public void run() {
+
+                    System.out.println("当前执行的线程是：" + Thread.currentThread().getName());
+                    try {
+                        Thread.sleep(30000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }, String.valueOf(i)));
+        }
+
+        System.out.println("main....end");
+        executor.shutdown();
+```
+
+# 接口的幂等性
+
+接口幂等性就是用户对于同一操作发起的一次请求或者多次请求的结果是一致的。
+
++ token机制
+
+  1. 服务端提供了发送token接口。那些业务存在幂等问题，就必须在这之前执行，先去获取token，服务器把token保存到redis
+  2. 然后调用业务接口请求时，把token携带过去，一般放在请求头部
+  3. 服务器判断是否存在redis中，存在表示第一次请求，然后删除token，继续执行业务
+  4. 如果判断token不存在redis中，则表示是重复操作，直接返回重读标记给client
+
+  危险性：
+
+  + 先删除还是后删除token
+
+    + 先删除可能导致，业务确实没有执行，重试还带上之前的token，由于防虫设计导致，接口还是不能执行
+
+      即分布式系统中两次请求同时从redis中取得token，服务端均校验通过，同时执行了业务
+
+    + 后删可能导致，业务处理成功，但是服务闪断，出现超时，没有删除token，继续重试，导致业务被执行两次+
+
+    + 最好设计为先删除token，如果业务嗲用失败，就重新获取token在此请求
+
+  + token获取、比较和删除必须是原子性
+
+    + redis.get(token)、token.equals、redis.del(token)如果这两个操作不是院子，可能导致，高并发下，都得到同样的token，判断都成功，继续业务并发执行
+
+    + 可以再redis使用lua脚本完成这个操作
+
+      if redis.call('get',KEYS[1]) == ARGV[1] then return redis.call('del',KEYS[1]) else return 0 end
+
++ 锁机制
+
+  + 数据库悲观锁
+
+    悲观锁使用时一般伴随事务一起使用,数据锁定时间可能会很长，需要根据实际情况选用。另外要注意的是，id字段一定是主键或者唯一索引不然可能造成锁表的结息，处理起来会非常麻烦。
+
+  + 数据库乐观锁
+
+    这种方法适合在更新的场景中,
+
+    updatet_goods set count = count -1 , version = version + 1 where good_id=2 and version= 1根据version 版本，也就是在操作库存前先获取当前商品的version版本号，然后操作的时候带上此version号。我们梳理下，我们第一次操作库存时，得到version为1，调用库存服务version 变成了2;但返回给订单服务出现了问题，订单服务又一次发起调用库存服务，当订单服务传如的version还是1，再执行上面的sql语句时，就不会执行:因为version已经变为2了，where条件就不成立。这样就保证了不管调用几次，只会真正的处理一次。
+
+    乐观锁主要使用于处理读多写少的问题
+
+  + 业务层分布式锁
+
+    如果多个机器可能在同一时间同时处理相同的数据,比如多台机器定时任务都拿到了相同数据处理，我们就可以加分布式锁，锁定此数据，处理完成后释放锁。获取到锁的必须先判断这个数据是否被处理过。
+
++ 各种唯一约束
+
+  + 数据库唯一约束
+
+    插入数据,应该按照唯一索引进行插入，比如订单号,相同的订单就不可能有两条记录插入。我们在数据库层面防止重复。
+    这个机制是利用了数据库的主键唯一约束的特性，解决了在insert场景时幂等问题。但主键的要求不是自增的主键,这样就需要业务生成全局唯一的主键。
+    如果是分库分表场景下，路由规则要保证相同请求下,落地在同一个数据库和同一表中，要不然数据库主键约束就不起效果了，因为是不同的数据库和表主键不相关。
+
+  + redis set 防重
+
+    很多数据需要处理，只能被处理一次,比如我们可以计算数据的 MD5将其放入redis 的 set,每次处理数据,先看这个MD5是否已经存在,存在就不处理。
+
++ 防重表
+    使用订单号 orderNo做为去重表的唯一索引,把唯一索引插入去重表,再进行业务操作，且他们在同一个事务中。这个保证了重复请求时，因为去重表有唯一约束，导致请求失败,避免了幂等问题。这里要注意的是，去重表和业务表应该在同一库中，这样就保证了在同一个事务，即使业务操作失败了，也会把去重表的数据回滚。这个很好的保证了数据一致性。
+
++ 全局请求唯一id
+
+
+    调用接口时,生成一个唯一id,redis 将数据保存到集合中（去重)，存在即处理过。可以使用 nginx设置每一个请求的唯一 id;
+
+    proxy_set_header X-Request-ld Srequest_id;
+

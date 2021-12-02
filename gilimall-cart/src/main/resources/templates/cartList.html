@@ -220,7 +220,7 @@
 <script src="/static/cart/js/index.js" charset="utf-8"></script>
 <script type="text/javascript">
     function toTrade() {
-        window.location.href = "http://order.gulimall.com/toTrade";
+        window.location.href = "http://127.0.0.1:9000/toTrade";
     }
 
     function toItem(skuId) {
@@ -228,8 +228,8 @@
     }
 
     function login() {
-        var s = encodeURIComponent("http://cart.gmall.com:8087/cartList");
-        window.location.href = "http://auth.gulimall.com/login.html";
+        var s = encodeURIComponent("http://127.0.0.1:21000/cartList");
+        window.location.href = "http://127.0.0.1:20000/login.html";
     }
 
     function checkSku(chkbox) {
