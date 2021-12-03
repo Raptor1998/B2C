@@ -7,6 +7,7 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 
+
 @EnableTransactionManagement
 @MapperScan("com.raptor.gulimall.ware.dao")
 @SpringBootApplication
