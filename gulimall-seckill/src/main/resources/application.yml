@@ -1,0 +1,43 @@
+spring:
+  application:
+    name: gulimall-seckill
+  datasource:
+    username: root
+    password: Cwh032308....
+    url: jdbc:mysql://sh-cynosdbmysql-grp-rjz587zw.sql.tencentcdb.com:27204/gulimall_oms?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+  rabbitmq:
+    username: guest
+    password: guest
+    host: 47.97.80.239
+    port: 5672
+    # 开启发送端确认
+    publisher-confirm-type: correlated
+    # 开启发送端消息抵达队列的queen
+    publisher-returns: true
+    # 只要抵达队列，优先回调publisher-returns
+    template:
+      mandatory: true
+    listener:
+      simple:
+        # 手动确认收货
+        acknowledge-mode: manual
+
+  redis:
+    host: 127.0.0.1
+    port: 6379
+
+
+
+mybatis-plus:
+  mapper-locations: classpath*:/mapper/**/*.xml
+  global-config:
+    db-config:
+      id-type: auto
+
+server:
+  port: 9000

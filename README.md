@@ -1,6 +1,23 @@
+---
+title: B2C电商实践
+date: 10/15/2021
+tags: SpringCloudAlibaba
+categories: SpringCloudAlibaba
+keywords: 
+description: SpringCloudAlibaba
+top_img: https://cdn.jsdelivr.net/gh/Raptor1998/imghouse/untidy/20210401142650.jpg
+comments:  是否顯示評論（除非設置false,可以不寫）
+cover: https://cdn.jsdelivr.net/gh/Raptor1998/imghouse/untidy/20210401142650.jpg
+toc:  是否顯示toc （除非特定文章設置，可以不寫）
+toc_number: 是否顯示toc數字 （除非特定文章設置，可以不寫）
+copyright: 是否顯示版權 （除非特定文章設置，可以不寫）
+---
+
 # B2C
 
-尚硅谷谷粒商城的demo，**不是完整代码**。
+尚硅谷谷粒商城的demo及部分解决方法笔记，**不是完整的代码**。
+
+[夏沫止水/gulimall](https://gitee.com/agoni_no/gulimall?_from=gitee_search)
 
 # Nacos
 
@@ -203,6 +220,104 @@ docker run --name kibana -e ELASTICSEARCH_HOSTS=http://your ipaddress:9200 -p 56
 ```
 
 # nginx转发到网关时请求的host丢失
+
+xxx
+
+# 缓存
+
+## 缓存溢出问题
+
+```java
+//TODO 性能优化  改为一次查询数据库
+// 堆外内存溢出  springboot 2.0默认使用lettuce操作redis客户端  使用netty进行网络通信
+// lettuce的bug导致netty堆外内存溢出   -Xmx300m  netty如果乜有指定堆外内存 默认使用 -Xmx300m 不能使用 可以通过 -Dio.netty.maxDirectMeory去调到堆外内存
+// 解决方案：升级lettuce客户端    切换使用jedis
+```
+
+## 缓存穿透
+
+只查询一个一定不存在的数据，由于缓存是不命中，将去查询数据库，数据库无此记录，没有将null写到缓存，导致每次请求都要取存储层查询。
+
+可以利用不存在的数据进行攻击，数据库压力增大，最终导致崩溃
+
+解决方案：null结果缓存，并加入短暂过期时间
+
+## 缓存雪崩
+
+值设置缓存是key采用了相同的过期时间，导致缓存在某一时刻同时失效，请求全部转发到db，cb压力过大雪崩
+
+原有的时效基础上增加一个随机值，比如1-5分钟随机，这样每个缓存的过期时间重复率就会降低，很难引发集体失效时间。
+
+## 缓存击穿
+
+对于一些设置了过期时间的key，如果这些key可能会在某些时间点被炒高并发访问，是一种热点数据，如果这个key在大量请求同时进来前刚好失效，所有对这个key 的查询都落到db
+
+解决：加锁，大量并发只让一个人去查，其他人等待，查到以后释放锁，其他人获取到锁，先查缓存，就会有数据。
+
+## redis的分布式锁
+
+```java
+//占分布式锁
+String uuid = UUID.randomUUID().toString();
+Boolean lock = stringRedisTemplate.opsForValue().setIfAbsent("lock", uuid,300,TimeUnit.SECONDS);
+if (lock) {
+    System.out.println("获取分布式锁成功");
+    Map<String, List<Catelog2Vo>> dataFromDb = null;
+    try {
+        //加锁成功
+        dataFromDb = getDataFromDb();
+    } finally {
+        String script = "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end";
+        //删锁
+        stringRedisTemplate.execute(new DefaultRedisScript<Long>(script, Long.class), Arrays.asList("lock"), uuid);
+
+    }
+    //只删除自己的锁
+    //获取值对比，对比成功删除=原子性 lua脚本解锁
+    //可能会出现删除其他线程锁的情况   在业务执行尾，获取到自己的数据后，传输过程中锁过期，执行删除锁命令，将其他线程锁删除
+    // String lockValue = stringRedisTemplate.opsForValue().get("lock");
+    // if (uuid.equals(lockValue)) {
+    //     //只能删除我自己的锁
+    //     stringRedisTemplate.delete("lock");
+    // }
+
+    return dataFromDb;
+} else {
+    System.out.println("获取分布式锁失败");
+    //加锁失败
+    try { TimeUnit.MILLISECONDS.sleep(100); } catch (InterruptedException e) { e.printStackTrace(); }
+    //自旋
+    return getCatalogJsonFromDbWithRedisLock();     
+}
+```
+
+## 缓存一致性问题
+
+### 双写模式（更新完数据更新缓存）
+
+![双写模式](https://cdn.jsdelivr.net/gh/Raptor1998/imghouse/untidy/20211104171156.png)
+
+### 失效模式（更新完数据缓存失效）
+
+![失效模式](https://cdn.jsdelivr.net/gh/Raptor1998/imghouse/untidy/20211104171157.png)
+
+### 解决
+
+![缓存一致性解决方案](https://cdn.jsdelivr.net/gh/Raptor1998/imghouse/untidy/20211104171350.png)
+
+# SpringCache
+
+xxx
+
+# Session共享问题
+
+![image-20211119191231370](E:\material\md\image-20211119191231370.png)
+
+![image-20211119191430478](E:\material\md\image-20211119191430478.png)
+
+![image-20211119191131013](E:\material\md\image-20211119191131013.png)
+
+![image-20211119191741406](E:\material\md\image-20211119191741406.png)
 
 # 异步&线程池
 
@@ -433,5 +548,284 @@ ThreadPoolExecutor executor = new ThreadPoolExecutor(7,
 @EnableAspectJAutoProxy(exposeProxy = true)
     
 从aopcontext中获取当前代理对象实现事务的传播
+```
+
+# 分布式事务
+
+## CAP定理
+
+CAP原则指的实在一个分布式系统中：
+
++ 一致性（Consistency）
+
+  在分布式系统中的所有数据备份，在同一时刻是否同样的值，等同于所有接待您访问同一份最新的数据副本
+
++ 可用性（Availablity）
+
+  在集群中一部分节点故障后，集群整体是否还能影响客户端的读写请求。（对数据更新具备更高的可用性）
+
++ 分区容错性（Partition tolerance）
+
+  大多数人分布式系统都分布在多个子网络，每个子网络叫做一个区，分区容错的意思就是，区间通信可能失败，。比如，一台服务器放在中国，另一台服务器放在美国，这就是两个区，他们之间可能无法通信。
+
+CAP原则指的是，这三个要素最多只能同时实现两点，不能三者兼顾。
+
+**分布式系统中实现一致性的raft算法、paxos**
+
+**[http://thesecretlivesofdata.com/raft/](http://thesecretlivesofdata.com/raft/)**
+
+## BASE理论
+
+是对CAP的延伸，思想史计时无法做到强一致性（CAP的一致性就是强一致性），也可以适当的采取弱一致性，即最终一致性。
+
++ 基本可用（Basically Available）
+
+  基本可用是指分布式系统在出现故障的时候,允许损失部分可用性(例如响应时间、功能上的可用性)，允许损失部分可用性。需要注意的是，基本可用绝不等价于系统不可用。
+
+  响应时间上的损失:正常情况下搜索引擎需要在0.5秒之内返回给用户相应的查询结果，但由于出现故障（比如系统部分机房发生断电或断网故障)，查询结果的响应时间增加到了1~2秒。
+
+  功能上的损失:购物网站在购物高峰(如双十一)时，为了保护系统的稳定性，部分消费者可能会被引导到一个降级页面。
+
++ 软状态（Soft State）
+
+  软状态是指允许系统存在中间状态，而该中间状态不会影响系统整体可用性。分布式存储中一般一份数据会有多个副本，允许不同副本同步的延时就是软状态的体现。mysql replication的异步复制也是一种体现。
+
++ 最终一致性（Eventual Consistency）
+
+  最终一致性是指系统中的所有数据副本经过一定时间后，最终能够达到一致的状态。弱一致性和强一致性相反，最终一致性是弱一致性的一种特殊情况。
+
+## 强一致性、弱一致性、最终一致性
+
+从客户端角度，多进程并发访间时，更新过的数据在不同进程如何获取的不同策略，决定了不同的一致性。对于关系型数据库，要求更新过的数据能被后续的访问都能看到，这是强一致性。如果能容忍后续的部分或者全部访问不到，则是弱一致性。如果经过一段时间后要求能访问到更新后的数据，则是最终一致性
+
+## 分布式事务的几种方案
+
+[分布式事务的解决方案](https://zhuanlan.zhihu.com/p/183753774)
+
+柔性事务+可靠消息+最终一致性方案
+
+业务处理服务在业务事务提交之前，向实时消息.服务请求发送消息，实时消息服务只记录消息数据，而不是真正的发送。业务处理服务在业务事务提交之后:向实时消息服务确认发送。只有在得到确认发送指令后，实时消息服务才会真正发送。
+
+# seata
+
+[Springcloud基础](https://github.com/Raptor1998/SpringCloud-Basic)
+
+[Springcloud笔记文档](https://github.com/Raptor1998/SpringCloud-Basic/blob/master/SpringCloud%20%E7%AC%AC%E4%BA%8C%E5%AD%A32020.03.05.mmap)
+
+# rabbit延迟队列释放库存
+
+![image-20211208190908469](E:\material\md\image-20211208190908469.png)
+
+```java
+/**
+ * 死信队列
+ *
+ * @return
+ */@Bean
+public Queue orderDelayQueue() {
+    /*
+        Queue(String name,  队列名字
+        boolean durable,  是否持久化
+        boolean exclusive,  是否排他
+        boolean autoDelete, 是否自动删除
+        Map<String, Object> arguments) 属性
+     */
+    HashMap<String, Object> arguments = new HashMap<>();
+    arguments.put("x-dead-letter-exchange", "order-event-exchange");
+    arguments.put("x-dead-letter-routing-key", "order.release.order");
+    arguments.put("x-message-ttl", 60000); // 消息过期时间 1分钟
+    Queue queue = new Queue("order.delay.queue", true, false, false, arguments);
+
+    return queue;
+}
+
+/**
+ * 普通队列
+ *
+ * @return
+ */
+@Bean
+public Queue orderReleaseQueue() {
+
+    Queue queue = new Queue("order.release.order.queue", true, false, false);
+
+    return queue;
+}
+
+/**
+ * TopicExchange
+ *
+ * @return
+ */
+@Bean
+public Exchange orderEventExchange() {
+    /*
+     *   String name,
+     *   boolean durable,
+     *   boolean autoDelete,
+     *   Map<String, Object> arguments
+     * */
+    return new TopicExchange("order-event-exchange", true, false);
+
+}
+
+
+@Bean
+public Binding orderCreateBinding() {
+    /*
+     * String destination, 目的地（队列名或者交换机名字）
+     * DestinationType destinationType, 目的地类型（Queue、Exhcange）
+     * String exchange,
+     * String routingKey,
+     * Map<String, Object> arguments
+     * */
+    return new Binding("order.delay.queue",
+            Binding.DestinationType.QUEUE,
+            "order-event-exchange",
+            "order.create.order",
+            null);
+}
+
+@Bean
+public Binding orderReleaseBinding() {
+
+    return new Binding("order.release.order.queue",
+            Binding.DestinationType.QUEUE,
+            "order-event-exchange",
+            "order.release.order",
+            null);
+}
+```
+
+# 消息的可靠性
+
+## 消息丢失
+
++ 消息发送出去，由于网络问题没有抵达服务器
+
+  + 做好容错方法(try-catch)，发送消息可能会网络失败，失败后要有重试机制，可记录到数据库，采用定期扫描重发的方式
+
+  + 做好日志记录，每个消息状态是否都被服务器收到都应该记录
+
+  + 做好定期重发，如果消息没有发送成功，定期去数据库扫描未成功的消息进行重发
+
++ 消息抵达Broker，Broker要将消息写入磁盘(持久化)才算成功。此时Broker尚未持久化完成，宕机.
+  + publisher也必须加入确认回调机制，确认成功的消息，修改数据库消息状态。
+
++ 自动ACK的状态下。消费者收到消息，但没来得及消息然后宕机
+  + 一定开启手动ACK，消费成功才移除，失败或者没来得及处理就noAck并重新入队
+
+## 消息重复
+
++ 消息消费成功，事务已经提交，ack时，机器宕机。导致没有ack成功，Broker的消息重新由unack变为ready，并发送给其他消费者
+
++ 消息消费失败，由于重试机制，自动又将消息发送出去
++ 成功消费，ack时宕机，消息由unack变为ready，Broker又重新发送
+  + 消费者的业务消费接口应该设计为幂等性的。比如扣库存有工作单的状态标志
+  + 使用防重表（redis/mysql)，发送消息每一个都有业务的唯一标识，处理过就不用处理
+  + rabbitMQ的每一个消息都有redelivered字段，可以获取是否是被重新投递过来的，而不是第一次投递过来的
+
+## 消息积压
+
++ 消费者宕机积压
++ 消费者消费能力不足宕机
++ 发送者发送流量太大
+  + 上线更多的消费者，进行正常消费
+  + 上线专门的队列消费服务，将消息先批量的取出来，记录数据库，离线慢慢处理
+
+# 收单
+
+1. 订单在支付页，不支付，一直刷新，订单过期了才支付，订单状态改为已经支付，但是库存已经释放了
+
+   可使用支付宝的自动收单功能，只要一段时间不支付，就不能支付了
+
+2. 由于时延等问题 ，订单解锁完成，正在等待锁库存的时候，异步通知才到
+
+   订单解锁，手动调用收单
+
+3. 网络阻塞问题，订单支付成功的异步通知一直不到达
+
+   查询订单列表时，ajax获取当前未支付的订单状态，查询订单状态时，再获取一下支付宝此订单的状态
+
+4. 其他各种问题
+
+   每天晚上闲时下载支付宝对账单，——进行对账
+
+# 秒杀
+
+秒杀具有瞬间高并发的特点，针对这一特点，必须要做限流＋异步＋缓存（页面静态化)＋独立部署。
+
+**限流方式:**
+
+1. 前端限流，一些高并发的网站直接在前端页面开始限流，例如:小米的验证码设计
+
+2. nginx限流，直接负载部分请求到错误的静态页面:令牌算法漏斗算法
+
+3. 网关限流，限流的过滤器
+
+4. 代码中使用分布式信号量
+
+## Spring定时任务
+
+```java
+@Component
+@EnableScheduling
+//开启异步任务
+@EnableAsync
+@Slf4j
+public class HelloSchedule {
+    /**
+     * 1. Spring的corn由6位组成，不予许第七位的年
+     * 2. 在周几的位置，1-7代表周一到周日，MON-SUN
+     * 3. 定时任务不应该阻塞。默认是阻塞的
+     *  1） 可以让业务运行以异步的方式，提交到自己的线程池
+     *        CompletableFuture.runAsync(()->{
+     *         }.executor);
+     *  2) 支持异步线程池；设置spring.task.schedule.pool.size=5
+     *  3) 异步任务  @EnableAsync
+     *
+     */
+    @Async
+    @Scheduled(cron = "* * * ? * 4")
+    public void hello() throws InterruptedException {
+        log.info("hello ...");
+        Thread.sleep(3000);
+    }
+
+}
+```
+
+## 商品上架的幂等性保证
+
+在分布式环境中，多个应用的上架时间都一样，只需要保证有一台机器执行即可。
+
+```java
+@Autowired
+private RedissonClient redissonClient;
+
+//秒杀商品上架功能的锁
+private final String upload_lock = "seckill:upload:lock";
+
+
+//TODO 保证幂等性问题
+// @Scheduled(cron = "*/5 * * * * ? ")
+@Scheduled(cron = "0 0 1/1 * * ? ")
+public void uploadSeckillSkuLatest3Days() {
+    //1、重复上架无需处理
+    log.info("上架秒杀的商品...");
+
+    //分布式锁
+    RLock lock = redissonClient.getLock(upload_lock);
+    try {
+        //加锁
+        lock.lock(10, TimeUnit.SECONDS);
+        //上架商品逻辑 
+        seckillService.uploadSeckillSkuLatest3Days();
+    } catch (Exception e) {
+        e.printStackTrace();
+    } finally {
+        lock.unlock();
+    }
+}
 ```
 

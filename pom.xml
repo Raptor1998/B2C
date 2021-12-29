@@ -24,6 +24,7 @@
         <module>gulimall-test-sso-server</module>
         <module>gulimall-test-sso-client</module>
         <module>gilimall-cart</module>
+        <module>gulimall-seckill</module>
     </modules>
     <!-- 统一管理jar包版本 -->
     <properties>

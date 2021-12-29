@@ -19,4 +19,16 @@
         from wms_ware_sku
         where sku_id = #{skuId}
     </select>
+
+
+    <select id="getSkuStock" resultType="java.lang.Long">SELECT SUM(stock - stock_locked)
+                                                         FROM wms_ware_sku
+                                                         WHERE sku_id = #{skuId} </select>
+
+    <select id="listWareIdHasSkuStock" resultType="java.lang.Long">SELECTware_idFROMwms_ware_skuWHEREsku_id
+    = #{skuId}AND stock - stock_locked > 0 </select>
+
+    <update id="lockSkuStock">UPDATE wms_ware_skuSET stock_locked = stock_locked + #{num}WHEREsku_id = #{skuId} AND ware_id = #{wareId} AND stock - stock_locked > 0 </update>
+
+    <update id="unLockStock">UPDATE wms_ware_skuSET stock_locked = stock_locked - #{num}WHEREsku_id = ${skuId} AND ware_id = #{wareId} </update>
 </mapper>
